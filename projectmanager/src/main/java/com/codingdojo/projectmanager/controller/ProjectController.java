@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.codingdojo.projectmanager.entity.Project;
+import com.codingdojo.projectmanager.entity.Task;
 import com.codingdojo.projectmanager.entity.User;
 import com.codingdojo.projectmanager.service.ProjectService;
+import com.codingdojo.projectmanager.service.TaskService;
 
 @Controller
 @RequestMapping("/projects")
@@ -23,6 +25,10 @@ public class ProjectController {
 	
 	@Autowired
 	private ProjectService projectService;
+	
+	@Autowired
+	private TaskService taskService;
+	
 	
 	/* JSP */
 	
@@ -69,7 +75,47 @@ public class ProjectController {
 		return "projects/edit";
 	}
 	
+	@RequestMapping("/{id}/tasks")
+	public String taskView(HttpSession session, @PathVariable("id") Long id, Model model, @ModelAttribute("newTask") Task task) {
+		Project result = projectService.find(id);
+		model.addAttribute("project", result);
+		
+		User loggedUser = (User) session.getAttribute("user");
+		
+		if (loggedUser == null) {
+			return "redirect:/logout";
+		}
+		
+		return "tasks/tasks";
+	}
+	
 	/* Actions */
+	
+	@RequestMapping(value = "/{projectId}/tasks", method = RequestMethod.POST)
+	public String createTask(HttpSession session, @Valid @ModelAttribute("newTask") Task task, @PathVariable("projectId") Long projectId, BindingResult result, Model model) {
+		Project project = projectService.find(projectId);
+		
+		if (result.hasErrors()) {
+			model.addAttribute("project", project);
+			return "tasks/tasks";
+		}
+		
+		User loggedUser = (User) session.getAttribute("user");
+		
+		if (loggedUser == null) {
+			return "redirect:/logout";
+		}
+		
+		//task.setId(null); // Task llega con id, si pathvariable se llama como uno de sus atributos va a intentar mapear
+		task.setProject(project);
+		task.setAuthor(loggedUser);
+		
+		taskService.save(task);
+		
+		model.addAttribute("newTask", new Task());
+		
+		return "redirect:/projects/" + projectId +"/tasks";
+	}
 	
 	@RequestMapping(method = RequestMethod.POST)
 	public String create(HttpSession session, @Valid @ModelAttribute("project") Project project, BindingResult result) {
@@ -85,12 +131,7 @@ public class ProjectController {
 		
 		project.setOwner(loggedUser);
 		
-		Project newProject = projectService.save(project, result);
-		
-		if (newProject == null) {
-			return "projects/new";
-		}
-		
+		projectService.save(project, result);
 		return "redirect:/dashboard";
 	}
 	

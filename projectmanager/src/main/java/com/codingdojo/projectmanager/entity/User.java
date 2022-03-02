@@ -59,6 +59,10 @@ public class User {
 	)
     private List<Project> projects;
     
+    /* Merge to avoid persisted data */
+    @OneToMany(mappedBy="author", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private List<Task> authoredTasks;
+    
     // Getters & Setters
   
     public Long getId() {
@@ -123,6 +127,14 @@ public class User {
 
 	public void setProjects(List<Project> projects) {
 		this.projects = projects;
+	}
+	
+	public List<Task> getAuthoredTasks() {
+		return authoredTasks;
+	}
+
+	public void setAuthoredTasks(List<Task> authoredTasks) {
+		this.authoredTasks = authoredTasks;
 	}
 
 	// Constructor

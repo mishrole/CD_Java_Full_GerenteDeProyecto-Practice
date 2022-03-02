@@ -65,6 +65,12 @@
 							</div>
 						</div>
 					</div>
+					
+					<div class="card-footer">
+						<div class="d-flex justify-content-end">
+							<a href="/projects/${project.id}/tasks" class="btn btn-secondary">View Tasks</a>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -1,7 +1,6 @@
 package com.codingdojo.projectmanager.entity;
 
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,10 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -22,56 +19,37 @@ import javax.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
-@Table(name = "projects")
-public class Project {
+@Table(name = "tasks")
+public class Task {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
     @NotNull
-    @Size(min = 3, max = 200, message = "Title must be at least 3 characters long")
-    private String title;
-    
-    @NotNull
     @Size(min = 3, max = 200, message = "Description must be at least 3 characters long")
     private String description;
     
+    @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern="yyyy-MM-dd")
-    @Column(name = "due_date")
-    private Date dueDate;
+    private Date createdAt;
     
     /* Merge to avoid persisted data */
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="user_id", nullable = false)
-    private User owner;
-    
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-		name = "projects_users",
-		joinColumns = @JoinColumn(name = "project_id"),
-		inverseJoinColumns = @JoinColumn(name = "user_id")
-	)
-    private List<User> users;
+    private User author;
     
     /* Merge to avoid persisted data */
-    @OneToMany(mappedBy="project", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
-    private List<Task> tasks;
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="project_id", nullable = false)
+    private Project project;
 
-	public Long getId() {
+    public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getDescription() {
@@ -82,39 +60,36 @@ public class Project {
 		this.description = description;
 	}
 
-	public Date getDueDate() {
-		return dueDate;
+	public Date getCreatedAt() {
+		return createdAt;
 	}
 
-	public void setDueDate(Date dueDate) {
-		this.dueDate = dueDate;
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
-	public User getOwner() {
-		return owner;
+	public User getAuthor() {
+		return author;
 	}
 
-	public void setOwner(User owner) {
-		this.owner = owner;
+	public void setAuthor(User author) {
+		this.author = author;
 	}
 
-	public List<User> getUsers() {
-		return users;
+	public Project getProject() {
+		return project;
 	}
 
-	public void setUsers(List<User> users) {
-		this.users = users;
+	public void setProject(Project project) {
+		this.project = project;
 	}
 
-	public List<Task> getTasks() {
-		return tasks;
-	}
-
-	public void setTasks(List<Task> tasks) {
-		this.tasks = tasks;
-	}
-
+	@PrePersist
+    protected void onCreate() {
+        this.createdAt = new Date();
+    }
+    
 	// Constructor
-	public Project() {}
+    public Task() {}
 
 }
